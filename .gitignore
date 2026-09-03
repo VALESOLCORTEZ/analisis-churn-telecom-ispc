@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+
+# Datos (evitar subir datasets pesados o crudos según la política del equipo)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Jupyter
+*.ipynb_checkpoints
+
+# OS / editores
+.DS_Store
+.vscode/
+.idea/
+
+# Colab
+.config/
