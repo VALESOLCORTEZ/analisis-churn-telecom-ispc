@@ -2,8 +2,8 @@
 
 Proyecto del **Módulo Analista de Datos 2** — Tecnicatura Superior en Ciencia de Datos e Inteligencia Artificial, Instituto Superior Politécnico de Córdoba (ISPC).
 
-**Docentes:** Donata Virginia Delfini · Sol Del Valle Figueroa
-
+**Docente:**  Sol Del Valle Figueroa
+**Título del proyecto:** Churn Intelligence SaaS
 **Integrantes:**
 - Amaya, Brenda
 - Amaya, Paula
