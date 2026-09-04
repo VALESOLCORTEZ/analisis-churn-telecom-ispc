@@ -1,141 +1,734 @@
-# Análisis del Churn — Telecom
+# Churn Intelligence B2B SaaS - Telecom
 
-Proyecto del **Módulo Analista de Datos 2** — Tecnicatura Superior en Ciencia de Datos e Inteligencia Artificial, Instituto Superior Politécnico de Córdoba (ISPC).
+**Plataforma de soporte para Fidelización, Atención al Cliente y Analítica de Negocios.**
 
-**Docente:**  Sol Del Valle Figueroa
+Proyecto del módulo **Analista de Datos 2** de la Tecnicatura Superior en Ciencia de Datos e Inteligencia Artificial, Instituto Superior Politécnico de Córdoba (ISPC).
+
+**Docente:** Sol Del Valle Figueroa
 
 **Título del proyecto:** Churn Intelligence SaaS
 
 **Integrantes:**
-- Amaya, Brenda
-- Amaya, Paula
-- Cortez, Valeria
-- Manrique Aguad, Agustín
-- Martinez, Cristian
-- Sudañez, Isaias Emanuel
+
+* Amaya, Brenda
+* Amaya, Paula
+* Cortez, Valeria
+* Manrique Aguad, Agustín
+* Martinez, Cristian
+* Sudañez, Isaias Emanuel
 
 ---
 
-## 1. Comprensión del negocio
+# Introducción del Proyecto
 
-### Contexto del problema
-Las empresas de telecomunicaciones deben gestionar grandes cantidades de clientes y buscar estrategias para retenerlos. El abandono de un cliente (**Churn**) representa una pérdida de ingresos y la necesidad de captar nuevos clientes. Este proyecto utiliza técnicas de Ciencia de Datos para analizar el comportamiento de los clientes y desarrollar una solución predictiva orientada a identificar el Churn.
+Este repositorio contiene el desarrollo del producto **Churn Intelligence**, concebido como una solución de software **B2B SaaS (Software as a Service) multi-tenant** para la gestión analítica y operativa de la retención de clientes.
 
-### Problema de negocio
-> ¿Es posible identificar anticipadamente a los clientes con mayor probabilidad de abandonar el servicio utilizando la información disponible sobre ellos?
+Como estrategia académica y técnica de validación del **Producto Mínimo Viable (MVP)**, el primer vertical de negocio considerado corresponde a la industria de **Telecomunicaciones (Telefonía)**, utilizando el dataset `telecom_dirty.csv` para la limpieza, exploración, modelado predictivo y visualización del riesgo de abandono.
 
-### Stakeholders
-| Área | Interés |
-|---|---|
-| Gerencia | Información para mejorar la toma de decisiones |
-| Marketing / Retención | Orientar acciones de retención con las predicciones |
-| Atención al Cliente | Priorizar clientes según riesgo |
-| Ciencia de Datos | Desarrollar el análisis y el modelo predictivo |
+El proyecto busca integrar el análisis de datos, la ciencia de datos y el desarrollo de producto para transformar información de clientes en resultados que puedan apoyar la toma de decisiones relacionadas con el churn.
 
-### Recursos disponibles
-- Dataset `telecom_dirty.csv` (con problemas de calidad introducidos deliberadamente)
-- Variable objetivo: `Churn`
-- Variables numéricas de comportamiento y consumo
-- Variables categóricas, incluyendo binarias
-- Variable temporal: `RegistrationDate`
+Este documento sintetiza la especificación y planificación inicial del proyecto, abarcando las fases de **Descubrimiento y Comprensión del Negocio, Definición del Producto, Factibilidad y Caso de Negocio, y Requisitos y Alcance**.
 
-**Stack técnico:** Google Colab · Python · Pandas · Matplotlib · Seaborn · Scikit-Learn
+---
 
-### Restricciones
-- Análisis limitado a las variables disponibles en el dataset
-- Problemas de calidad a identificar en el EDA y tratar en la preparación de datos
-- Información temporal limitada a `RegistrationDate`
-- Uso de las herramientas/técnicas vistas en la materia
-- Cronograma sujeto al calendario académico
+# 1. Descubrimiento y Comprensión del Negocio
 
-### Riesgos iniciales
-- Datos no suficientemente representativos
-- Problemas de calidad no detectados/tratados correctamente
-- Outliers que afecten el modelado
-- Desbalance de clases (Churn vs. no Churn)
-- Selección inadecuada de variables
-- Data Leakage durante preparación/modelado
-- Overfitting
-- Bajo desempeño predictivo
+## 1.1 Contexto del Problema y Problem Statement
 
-## 2. Objetivos analíticos
+La gestión y reducción del **churn (abandono)** representa un desafío relevante para las organizaciones de telecomunicaciones.
 
-**Objetivo de negocio:** Identificar anticipadamente a los clientes con mayor riesgo de abandono para apoyar la toma de decisiones y las estrategias de retención.
+El Problem Statement de trabajo define:
 
-**Objetivo analítico:** Desarrollar un modelo de clasificación binaria que prediga si un cliente abandonará o permanecerá en el servicio, a partir de las características del dataset.
+> La empresa de telecomunicaciones necesita mejorar su capacidad para identificar y gestionar tempranamente a los clientes con riesgo de abandono, debido a la dificultad de transformar de manera sistemática los datos disponibles de clientes, comportamiento, interacción y servicio en información predictiva y accionable para las áreas de Fidelización, Atención al Cliente y Analítica de Negocios.
 
-**Pregunta analítica:**
-> ¿Es posible predecir si un cliente abandonará el servicio a partir de sus características y comportamiento registrado?
+El problema no se limita al desarrollo de un modelo predictivo aislado, sino que contempla un ciclo de trabajo más amplio:
 
-Preguntas complementarias para el EDA:
-- ¿Qué características presentan los clientes que abandonan?
-- ¿Qué variables tienen mayor relación con el Churn?
-- ¿Qué características podrían ser relevantes para predecir el abandono?
-
-## 3. Relevamiento de Requerimientos (Funcionales y No Funcionales)
-
-| Pain Point | Código | Requerimiento |
-|---|---|---|
-| **01: Detección tardía del riesgo de abandono** | RF-015 | El sistema deberá ejecutar un modelo predictivo de churn utilizando los datos de los clientes. |
-| | RF-016 | El sistema deberá calcular un score de riesgo (probabilidad de 0 a 1) por cliente de forma sistemática. |
-| | RF-022 | El sistema deberá generar alertas cuando el score de riesgo de un cliente supere el umbral establecido o cuando se detecten señales relevantes de comportamiento. (Aporte del grupo) |
-| | NF-004 | Las operaciones de visualización de scores en tiempo real deberán responder en menos de 2 segundos para el volumen de datos del MVP. |
-| | RNF-005 | Los procesos de entrenamiento de modelos prolongados deberán disponer de indicadores de estado de procesamiento visibles. |
-| | RNF-014 | El procesamiento e inferencia sobre un lote de hasta 10.000 registros de clientes deberá completarse en un tiempo máximo de 5 segundos tras la ingesta del archivo. (Aporte del grupo) |
-| **02: Falta de priorización de la cartera y saturación** | RF-017 | El sistema deberá clasificar automáticamente a los clientes en tres niveles de riesgo (Alto, Medio, Bajo) según umbrales definidos. |
-| | RF-020 | El sistema deberá permitir filtrar y ordenar la lista de clientes según nivel de riesgo, segmento y valor. |
-| | RF-023 | El sistema deberá permitir segmentar clientes críticos para facilitar la ejecución de campañas de retención personalizadas. (Aporte del grupo) |
-| | RNF-010 | La interfaz gráfica deberá ser intuitiva, permitiendo que un usuario de negocio (fidelización) comprenda y priorice los casos de riesgo sin necesidad de tener conocimientos técnicos avanzados de Machine Learning. |
-| | RNF-011 | Los usuarios deberán poder acceder al perfil y nivel de riesgo de cualquier cliente en un máximo de 3 clics. (Aporte del grupo) |
-| **03: Información distribuida, fragmentada y en silos** | RF-005 | El sistema deberá permitir la carga centralizada de datasets estructurados (archivos CSV/Excel) con variables de facturación, comportamiento y servicio. (Aporte del grupo) |
-| | RF-007 | El sistema deberá identificar de forma automática errores, valores nulos, duplicados e inconsistencias de datos. |
-| | RF-024 | El sistema deberá integrar variables de plan, consumo, historial de soporte y estado de cuenta para disponer de una visión consolidada del cliente. (Aporte del grupo) |
-| | RNF-002 | El sistema deberá garantizar el aislamiento absoluto de los datos entre diferentes organizaciones (arquitectura multi-tenant), impidiendo estrictamente que cualquier usuario acceda a datos de otra compañía. |
-| | RNF-012 | El sistema deberá implementar autenticación basada en credenciales y control de acceso para restringir el acceso a datos sensibles y de facturación exclusivamente al personal autorizado. (Aporte del grupo) |
-| **04: Dificultad para explicar e interpretar el riesgo** | RF-018 | El sistema deberá proporcionar y visualizar los principales factores de comportamiento que más influyen en el score de riesgo de cada cliente (interpretabilidad individual). |
-| | RF-021 | El sistema deberá mostrar una vista detallada del perfil del cliente con sus variables explicativas. |
-| | RNF-013 | La arquitectura de software deberá mantener una estricta separación de capas (Presentación, Lógica de Negocio, Procesamiento de Datos y Componente Analítico de ML) para asegurar la mantenibilidad del sistema. |
-| **05: Información analítica poco accionable** | RF-019 | El sistema deberá proporcionar un dashboard analítico con métricas de abandono segmentadas por tipo de plan, servicios adicionales y volumen de reclamos. (Aporte del grupo) |
-| | RF-025 | El sistema deberá permitir visualizar indicadores relacionados con consumo, facturación, contratación e interacciones de soporte para facilitar el análisis de los segmentos de riesgo. (Aporte del grupo) |
-| | RNF-010 | La interfaz deberá facilitar la interpretación de los indicadores y la identificación de clientes prioritarios por parte de usuarios de negocio. |
-| **06: Ausencia de seguimiento y trazabilidad del proceso** | RF-026 | El sistema deberá registrar las acciones de retención realizadas sobre clientes identificados como de riesgo y permitir consultar su resultado. |
-| | RF-027 | El sistema deberá permitir realizar seguimiento de los clientes intervenidos para evaluar posteriormente su comportamiento frente al churn. (Aporte del grupo) |
-| | RNF-015 | La arquitectura deberá ser modular para facilitar la ejecución de pruebas por parte del equipo de QA y permitir el despliegue de nuevos modelos de análisis sin afectar el frontend principal. (Aporte del grupo) |
-
-## 4. Plan de proyecto
-
-### Criterios de éxito
-- Analizar correctamente calidad y características del dataset
-- Identificar patrones relevantes relacionados con el Churn
-- Desarrollar y validar un modelo de clasificación adecuado
-- Obtener métricas de evaluación satisfactorias
-- Interpretar los resultados en relación al problema planteado
-
-**Métricas de evaluación:** Accuracy · Precision · Recall · F1-score · ROC-AUC
-
-### Metodología (CRISP-DM)
-1. **Comprensión del negocio** — problema, objetivos, criterios de éxito 
-2. **Comprensión de los datos** — EDA, clasificación de variables, estadísticas descriptivas y visualizaciones  *(etapa actual)*
-3. **Preparación de los datos** — tratamiento de nulos, duplicados, inconsistencias, outliers, transformación de la variable temporal, selección de características
-4. **Modelado** — modelos de clasificación (Regresión Logística, entre otros)
-5. **Evaluación** — validación y análisis de métricas
-6. **Interpretación** — resultados y relación con el problema inicial
-
-## 5. Estructura del repositorio
-
+```text
+DATOS
+  ↓
+ANÁLISIS
+  ↓
+IDENTIFICACIÓN DE PATRONES
+  ↓
+PREDICCIÓN DE CHURN
+  ↓
+SEGMENTACIÓN
+  ↓
+INTERPRETACIÓN
+  ↓
+INSIGHT
+  ↓
+DECISIÓN
+  ↓
+ACCIÓN DE RETENCIÓN
 ```
+
+## 1.2 Proceso de Negocio Objeto de Soporte
+
+El producto busca brindar soporte al siguiente proceso conceptual:
+
+```text
+GESTIÓN DE CLIENTES
+        ↓
+CAPTURA DE DATOS
+        ↓
+ANÁLISIS DEL COMPORTAMIENTO
+        ↓
+DETECCIÓN DE SEÑALES
+        ↓
+IDENTIFICACIÓN DE RIESGO
+        ↓
+PRIORIZACIÓN
+        ↓
+ACCIÓN DE FIDELIZACIÓN
+        ↓
+SEGUIMIENTO
+        ↓
+RESULTADO
+```
+
+Durante la etapa de descubrimiento se estableció que el funcionamiento concreto de este proceso dentro de una organización deberá ser relevado y validado posteriormente.
+
+## 1.3 Pain Points Identificados
+
+### Pain Point 01 — Detección tardía del riesgo de abandono
+
+El riesgo de abandono puede manifestarse mediante diferentes señales antes de que ocurra el churn. Si estas señales no se detectan oportunamente, la intervención puede producirse demasiado tarde.
+
+**Necesidad:** Detectar anticipadamente clientes que presenten señales compatibles con riesgo de abandono.
+
+**Oportunidad:** Desarrollar un mecanismo de scoring de riesgo que permita identificar y monitorear tempranamente estos casos.
+
+```text
+SEÑALES
+   ↓
+MODELO
+   ↓
+CHURN SCORE
+   ↓
+PRIORIZACIÓN
+```
+
+### Pain Point 02 — Falta de priorización de clientes
+
+No todos los clientes presentan el mismo nivel de riesgo ni representan el mismo valor para la organización. Cuando la cartera es amplia, analizar todos los casos con el mismo nivel de atención dificulta concentrar los esfuerzos donde pueden generar mayor impacto.
+
+**Necesidad:** Determinar qué clientes requieren mayor prioridad de atención.
+
+**Oportunidad:** Combinar el riesgo de churn con variables de valor y segmentación para generar una priorización de la cartera.
+
+```text
+RIESGO DE CHURN
+        +
+VALOR DEL CLIENTE
+        +
+SEGMENTO
+        ↓
+MATRIZ DE PRIORIDAD
+```
+
+### Pain Point 03 — Información distribuida
+
+La información necesaria para comprender el comportamiento de un cliente puede provenir de diferentes fuentes y sistemas. Esta distribución dificulta construir una visión integrada de la relación del cliente con la organización.
+
+**Necesidad:** Contar con una visión consolidada de la información relevante del cliente.
+
+**Oportunidad:** Construir una capa analítica capaz de integrar las variables disponibles para el análisis.
+
+```text
+CLIENTE
+  ├── Facturación
+  ├── Servicio
+  └── Atención
+          ↓
+       ANÁLISIS
+```
+
+Las fuentes concretas de información quedan sujetas a relevamiento y validación.
+
+### Pain Point 04 — Dificultad para explicar el riesgo
+
+Una predicción como:
+
+```text
+CHURN = 87%
+```
+
+por sí sola puede no ser suficiente para que un usuario de negocio comprenda el resultado y decida cómo actuar.
+
+**Necesidad:** Comprender los principales factores asociados al riesgo identificado.
+
+**Oportunidad:** Incorporar mecanismos de interpretabilidad que permitan mostrar los factores más relevantes para cada predicción.
+
+```text
+87% RIESGO
+
+Factores relevantes:
+↓ Consumo
+↑ Reclamos
+↓ Actividad
+↑ Incidencias
+```
+
+Los factores concretos dependerán de los datos disponibles y del modelo seleccionado.
+
+### Pain Point 05 — Información poco accionable
+
+Un dashboard puede mostrar información general como:
+
+> "8.000 clientes presentan riesgo alto."
+
+Sin embargo, el área de negocio necesita responder preguntas operativas como:
+
+> "¿A cuáles atendemos primero y por qué?"
+
+**Necesidad:** Transformar los resultados analíticos y predictivos en información que facilite la toma de decisiones.
+
+**Oportunidad:** Incorporar:
+
+* segmentos;
+* niveles de riesgo;
+* priorización;
+* alertas;
+* indicadores;
+* perfiles de clientes;
+* insights basados en evidencia.
+
+### Pain Point 06 — Ausencia de seguimiento
+
+La identificación del riesgo no representa el final del proceso. Para evaluar la efectividad de las acciones de fidelización resulta necesario conocer qué ocurrió después de intervenir sobre un cliente.
+
+**Necesidad:** Contar con mecanismos que permitan registrar y analizar los resultados de las acciones realizadas.
+
+**Oportunidad:** Diseñar el producto para permitir posteriormente un ciclo de seguimiento:
+
+```text
+PREDICCIÓN
+    ↓
+ACCIÓN
+    ↓
+RESULTADO
+    ↓
+MEDICIÓN
+    ↓
+APRENDIZAJE
+```
+
+Entre los resultados que podrían medirse posteriormente se encuentran:
+
+* clientes intervenidos;
+* clientes retenidos;
+* churn posterior;
+* evolución del riesgo;
+* efectividad de las acciones.
+
+Esta capacidad podrá formar parte de una evolución posterior del producto y no necesariamente del MVP inicial.
+
+## 1.4 Mapeo de Stakeholders
+
+### Stakeholders Primarios
+
+| Stakeholder           | Interés | Relación               |
+| --------------------- | ------- | ---------------------- |
+| Área de Fidelización  | Alto    | Usuario de negocio     |
+| Analítica de Negocios | Alto    | Usuario analítico      |
+| Dirección / Gerencia  | Alto    | Consumidor estratégico |
+
+### Stakeholders Secundarios
+
+| Stakeholder         | Interés    | Relación            |
+| ------------------- | ---------- | ------------------- |
+| Atención al Cliente | Alto       | Usuario operativo   |
+| IT / Sistemas       | Medio/Alto | Integración         |
+| QA / Testing        | Medio      | Calidad             |
+| Data Engineering    | Medio/Alto | Datos e integración |
+
+## 1.5 Usuarios del Sistema
+
+### Persona 01 — Analista de Fidelización
+
+**Rol:** Usuario operativo/comercial.
+
+**Objetivo:** Identificar los clientes que requieren acciones de retención.
+
+**Necesita:**
+
+* conocer el riesgo;
+* priorizar clientes;
+* analizar segmentos;
+* comprender factores asociados al riesgo;
+* disponer de información actualizada.
+
+**Necesidad principal:**
+
+> Saber dónde concentrar los esfuerzos de fidelización.
+
+### Persona 02 — Analista de Negocios
+
+**Rol:** Usuario analítico.
+
+**Objetivo:** Analizar el comportamiento de la cartera y producir información para la toma de decisiones.
+
+**Necesita:**
+
+* métricas;
+* tendencias;
+* segmentaciones;
+* análisis de churn;
+* visualizaciones;
+* resultados de modelos.
+
+**Necesidad principal:**
+
+> Transformar datos de clientes en información confiable para la toma de decisiones.
+
+### Persona 03 — Responsable de Atención al Cliente
+
+**Rol:** Usuario operativo.
+
+**Objetivo:** Comprender los problemas e interacciones de los clientes.
+
+**Necesita:**
+
+* historial;
+* incidencias;
+* motivos de contacto;
+* señales de insatisfacción;
+* clientes prioritarios.
+
+**Necesidad principal:**
+
+> Detectar señales provenientes de la interacción con el cliente que puedan relacionarse con riesgo de abandono.
+
+### Persona 04 — Gerencia / Dirección
+
+**Rol:** Usuario estratégico.
+
+**Objetivo:** Conocer el estado de la cartera y tomar decisiones.
+
+**Necesita:**
+
+* KPIs;
+* evolución del churn;
+* impacto económico;
+* segmentos;
+* tendencias;
+* información ejecutiva.
+
+**Necesidad principal:**
+
+> Entender el impacto del churn y dónde actuar.
+
+---
+
+# 2. Definición del Producto
+
+## 2.1 Visión del Producto
+
+**Churn Intelligence** es una plataforma SaaS B2B que ayuda a empresas con grandes carteras de clientes a detectar, comprender y priorizar el riesgo de abandono mediante analítica, segmentación y modelos predictivos de churn.
+
+El producto busca transformar los resultados analíticos en información accionable para que los equipos de negocio puedan tomar decisiones de fidelización basadas en datos.
+
+## 2.2 Product Goals
+
+* **PG-01 — Detectar:** Identificar de forma proactiva clientes con riesgo de abandono.
+* **PG-02 — Comprender:** Explicar los factores asociados al score predictivo calculado.
+* **PG-03 — Priorizar:** Clasificar clientes y segmentos según criterios de riesgo y valor.
+* **PG-04 — Analizar:** Monitorear la evolución de las tasas de churn mediante KPIs.
+* **PG-05 — Segmentar:** Agrupar clientes con características relevantes para el análisis.
+* **PG-06 — Accionar:** Proporcionar información que facilite la selección de clientes para acciones de retención.
+
+## 2.3 Fronteras del Alcance del MVP
+
+### In Scope
+
+* Ingesta y procesamiento de datasets estructurados.
+* Carga de archivos CSV.
+* Validación de calidad de datos.
+* Dashboard analítico de churn.
+* KPIs e indicadores.
+* Modelo predictivo de clasificación.
+* Churn Score.
+* Interpretabilidad individual.
+* Consulta individual de clientes.
+* Filtrado de cartera.
+* Segmentación de clientes.
+
+### Out of Scope
+
+* Gestión automática de campañas de marketing.
+* CRM completo.
+* Integraciones CRM complejas en tiempo real.
+* Facturación.
+* Automatización de retención mediante WhatsApp o Call Center.
+* Procesamiento de datos por streaming.
+* Infraestructura multi-cloud.
+
+## 2.4 Priorización de Características — MoSCoW
+
+### Must Have
+
+* Gestión de organizaciones.
+* Autenticación segura.
+* Carga de datasets estructurados.
+* Validaciones de calidad de datos.
+* Dashboard analítico.
+* KPIs de churn.
+* Predicción mediante Machine Learning.
+* Churn Score.
+* Interpretabilidad.
+* Vista detallada del cliente.
+
+### Should Have
+
+* Exportación de resultados a CSV.
+* Filtros avanzados multi-variable.
+* Insights descriptivos automatizados.
+* Historial de ejecuciones analíticas.
+
+### Could Have
+
+* Alertas tempranas parametrizables.
+* Análisis de sentimiento de comentarios o quejas de soporte.
+
+### Won't Have — MVP
+
+* CRM nativo completo.
+* Motor de facturación SaaS.
+* Envío automatizado de WhatsApp.
+* Integraciones de marcado telefónico automatizado.
+
+---
+
+# 3. Factibilidad y Caso de Negocio
+
+## 3.1 Análisis de Viabilidad
+
+### Factibilidad Técnica — Viable
+
+La solución puede desarrollarse utilizando tecnologías y herramientas conocidas por el equipo:
+
+* Python;
+* APIs;
+* frontend interactivo;
+* bases de datos relacionales;
+* Scikit-Learn;
+* herramientas de interpretabilidad.
+
+### Factibilidad Operativa — Viable
+
+El sistema busca proporcionar inteligencia analítica para apoyar el trabajo de las áreas de negocio, sin reemplazar necesariamente las herramientas de gestión o contacto utilizadas por la organización.
+
+### Factibilidad Temporal — Viable
+
+El MVP se considera viable dentro de un marco estimado de **10 a 20 semanas**, manteniendo controlado el alcance inicial de ingesta mediante CSV y procesamiento batch.
+
+### Factibilidad de Datos — Crítica
+
+La disponibilidad y calidad de los datos representan una dependencia fundamental.
+
+No se construirá el modelo de Machine Learning hasta contar con:
+
+* una definición operacional de churn;
+* datos suficientes;
+* volumen adecuado;
+* granularidad adecuada;
+* historial suficiente;
+* información correctamente etiquetada.
+
+### Factibilidad Económica — Go Condicionado
+
+Se plantea inicialmente un modelo SaaS basado en suscripción mensual:
+
+$$
+MRR = Clientes\ Activos \times Precio\ Mensual\ Promedio
+$$
+
+La decisión económica queda condicionada a la validación de la viabilidad analítica y técnica del producto.
+
+## 3.2 Análisis FODA
+
+### Fortalezas
+
+* Problema de negocio cuantificable.
+* Orientación SaaS B2B.
+* Arquitectura multi-tenant como visión de producto.
+* Integración entre Analytics, Machine Learning e información accionable.
+
+### Oportunidades
+
+* Crecimiento de la cultura data-driven.
+* Mayor utilización de analítica predictiva.
+* Automatización de análisis que actualmente puede realizarse mediante hojas de cálculo.
+
+### Debilidades
+
+* Dependencia de la calidad de los datos de origen.
+* Dependencia de la disponibilidad de información histórica.
+* Complejidad potencial de integración de múltiples fuentes.
+
+### Amenazas
+
+* Herramientas tradicionales de BI ya adoptadas.
+* Resistencia organizacional a incorporar nuevas herramientas.
+* Competencia de soluciones analíticas existentes.
+
+---
+
+# 4. Requisitos y Alcance
+
+## 4.1 Requisitos Funcionales
+
+* **RF-005:** El sistema deberá permitir la carga manual de datasets estructurados en formato CSV.
+* **RF-006:** El sistema deberá validar automáticamente la estructura lógica y las columnas del dataset cargado.
+* **RF-007:** El sistema deberá identificar problemas críticos de calidad, como valores faltantes, duplicados e inconsistencias, antes del procesamiento.
+* **RF-015:** El sistema deberá ejecutar el pipeline predictivo para estimar la probabilidad de abandono.
+* **RF-016:** El sistema deberá calcular un score de riesgo continuo entre 0 y 1 para cada cliente.
+* **RF-017:** El sistema deberá clasificar a los clientes en niveles de riesgo: Alto, Medio y Bajo.
+* **RF-018:** El sistema deberá proporcionar información de interpretabilidad individual sobre las variables relevantes para cada predicción.
+* **RF-020:** El sistema deberá permitir filtros interactivos basados en niveles de riesgo, segmentos y variables de clientes.
+* **RF-022:** El sistema deberá mostrar un dashboard de analítica consolidada con indicadores como tasa de churn, total de clientes y volumen por nivel de riesgo.
+
+## 4.2 Requisitos No Funcionales
+
+* **RNF-002 — Seguridad:** Un usuario no podrá visualizar, procesar o acceder a información perteneciente a otra organización.
+* **RNF-004 — Rendimiento:** Las consultas interactivas del dashboard y los filtros deberán ejecutarse en menos de 2 segundos.
+* **RNF-005 — Rendimiento:** Los procesos prolongados deberán mostrar indicadores de progreso.
+* **RNF-010 — Usabilidad:** La interfaz deberá permitir a usuarios no técnicos comprender y priorizar clientes sin requerir conocimientos especializados en ciencia de datos.
+* **RNF-013 — Mantenibilidad:** El sistema deberá mantener una separación modular entre Frontend, Backend, persistencia y servicio predictivo.
+* **RNF-014 — Calidad:** Las funciones críticas y los flujos analíticos deberán contar con pruebas de calidad e integración antes del despliegue.
+
+## 4.3 Reglas de Negocio
+
+* **RN-002 — Aislamiento:** Los datos pertenecientes a una organización no podrán estar disponibles para otra organización.
+* **RN-004 — Churn:** La definición operacional de churn deberá establecerse antes del modelado analítico final.
+* **RN-005 — Score:** El score predictivo representa una estimación probabilística y no deberá presentarse como una certeza determinista de abandono.
+* **RN-007 — Interpretabilidad:** Los factores asociados a una predicción no deberán interpretarse directamente como relaciones causales.
+
+---
+
+# 5. Objetivos Analíticos
+
+Los objetivos analíticos corresponden al componente de **Ciencia de Datos y Machine Learning** del producto y utilizan inicialmente el dataset de telecomunicaciones como caso de validación.
+
+## 5.1 Objetivo de Negocio
+
+Identificar anticipadamente a los clientes con mayor riesgo de abandono para apoyar la toma de decisiones y las estrategias de retención.
+
+## 5.2 Objetivo Analítico
+
+Desarrollar un modelo de clasificación binaria capaz de estimar la probabilidad de abandono de un cliente a partir de las características y comportamiento registrados en el dataset.
+
+El resultado del modelo deberá permitir generar un **Churn Score** que pueda utilizarse posteriormente como insumo para la segmentación y priorización.
+
+## 5.3 Pregunta Analítica
+
+> ¿Es posible predecir el abandono de un cliente a partir de sus características y comportamiento registrado?
+
+## 5.4 Preguntas Complementarias para el EDA
+
+* ¿Qué características presentan los clientes que abandonan?
+* ¿Qué variables presentan mayor relación con el Churn?
+* ¿Existen diferencias relevantes entre clientes que abandonan y permanecen?
+* ¿Qué variables podrían resultar relevantes para la predicción?
+* ¿Existen patrones o segmentos de clientes asociados con diferentes niveles de abandono?
+
+## 5.5 Métricas de Evaluación
+
+El desempeño de los modelos podrá evaluarse mediante:
+
+* Accuracy
+* Precision
+* Recall
+* F1-Score
+* ROC-AUC
+
+La selección e interpretación de las métricas deberá considerar el impacto que tienen los falsos positivos y falsos negativos sobre el problema de negocio.
+
+## 5.6 Metodología — CRISP-DM
+
+El desarrollo analítico seguirá las etapas de **CRISP-DM**:
+
+1. **Comprensión del negocio**
+   Definición del problema, objetivos y criterios de éxito.
+
+2. **Comprensión de los datos**
+   Exploración del dataset, clasificación de variables, estadísticas descriptivas y visualizaciones.
+
+3. **Preparación de los datos**
+   Tratamiento de valores nulos, duplicados, inconsistencias y outliers; transformación de variables; selección de características y preparación para el modelado.
+
+4. **Modelado**
+   Desarrollo y comparación de modelos de clasificación, comenzando por algoritmos apropiados para el problema, como Regresión Logística.
+
+5. **Evaluación**
+   Validación del desempeño de los modelos mediante las métricas seleccionadas y análisis de sus resultados.
+
+6. **Interpretación**
+   Relación de los resultados obtenidos con el problema de negocio y análisis de los factores asociados a las predicciones.
+
+---
+
+# 6. Datos y Recursos
+
+## 6.1 Dataset
+
+El proyecto utiliza inicialmente:
+
+```text
+telecom_dirty.csv
+```
+
+El dataset contiene problemas de calidad introducidos deliberadamente para trabajar las etapas de exploración y preparación de datos.
+
+## 6.2 Variables Disponibles
+
+Entre las características disponibles se encuentran:
+
+* Variable objetivo: `Churn`
+* Variables numéricas de comportamiento y consumo.
+* Variables categóricas, incluyendo variables binarias.
+* Variable temporal: `RegistrationDate`.
+
+## 6.3 Restricciones
+
+* El análisis estará limitado inicialmente a las variables disponibles en el dataset.
+* Los problemas de calidad deberán ser identificados durante el EDA.
+* La información temporal disponible está limitada inicialmente a `RegistrationDate`.
+* Se utilizarán las herramientas y técnicas abordadas en la materia.
+* El desarrollo estará condicionado por el cronograma académico.
+
+## 6.4 Riesgos Analíticos Iniciales
+
+* Datos no suficientemente representativos.
+* Problemas de calidad no detectados o tratados incorrectamente.
+* Presencia de outliers que afecten el modelado.
+* Desbalance entre las clases de Churn.
+* Selección inadecuada de variables.
+* Data Leakage durante la preparación o modelado.
+* Overfitting.
+* Bajo desempeño predictivo.
+
+---
+
+# 7. Stack Tecnológico
+
+El desarrollo analítico inicial utiliza:
+
+* **Google Colab**
+* **Python**
+* **Pandas**
+* **Matplotlib**
+* **Seaborn**
+* **Scikit-Learn**
+
+La arquitectura completa del producto SaaS podrá incorporar posteriormente componentes adicionales para backend, frontend, persistencia, autenticación e infraestructura.
+
+---
+
+# 8. Estructura del Repositorio
+
+```text
 ├── data/
-│   ├── raw/            # Dataset original (telecom_dirty.csv)
+│   ├── raw/            # Dataset original
 │   └── processed/      # Datasets limpios/transformados
+│
 ├── notebooks/          # Notebooks de EDA, preparación y modelado
+│
 ├── src/                # Funciones y utilidades reutilizables
+│
 ├── reports/            # Gráficos, resultados y hallazgos
-├── docs/               # Documentación del proyecto (CRISP-DM, entregas)
+│
+├── docs/               # Documentación del proyecto
+│
 └── README.md
 ```
 
-## 6. Cómo correr el proyecto
-1. Clonar el repositorio
-2. Colocar `telecom_dirty.csv` en `data/raw/`
-3. Instalar dependencias: `pip install -r requirements.txt`
-4. Abrir los notebooks en `notebooks/` (o en Google Colab)
+---
+
+# 9. Cómo ejecutar el proyecto
+
+## 9.1 Clonar el repositorio
+
+```bash
+git clone <URL_DEL_REPOSITORIO>
+cd <NOMBRE_DEL_REPOSITORIO>
+```
+
+## 9.2 Agregar el dataset
+
+Colocar el archivo:
+
+```text
+telecom_dirty.csv
+```
+
+dentro de:
+
+```text
+data/raw/
+```
+
+## 9.3 Instalar dependencias
+
+```bash
+pip install -r requirements.txt
+```
+
+## 9.4 Ejecutar los notebooks
+
+Los notebooks pueden ejecutarse localmente o mediante **Google Colab**.
+
+La secuencia recomendada es:
+
+```text
+EDA
+ ↓
+Preparación de datos
+ ↓
+Modelado
+ ↓
+Evaluación
+ ↓
+Interpretación
+```
+
+---
+
+# 10. Estado Actual del Proyecto
+
+El proyecto se encuentra en la etapa de **Comprensión de los Datos / EDA** dentro de la metodología CRISP-DM.
+
+El trabajo actual se concentra en:
+
+* comprender la estructura del dataset;
+* identificar tipos de variables;
+* detectar problemas de calidad;
+* analizar la distribución de Churn;
+* explorar relaciones entre variables;
+* identificar patrones relevantes;
+* preparar los datos para las etapas posteriores.
+
+El modelado predictivo se realizará una vez completadas las etapas necesarias de comprensión y preparación de los datos.
+
+---
+
+# 11. Próximos Pasos
+
+```text
+COMPRENSIÓN DE LOS DATOS
+        ↓
+EDA
+        ↓
+PREPARACIÓN DE DATOS
+        ↓
+MODELADO
+        ↓
+EVALUACIÓN
+        ↓
+INTERPRETACIÓN
+        ↓
+INTEGRACIÓN CON EL PRODUCTO
+```
+
+El objetivo final es conectar los resultados del componente analítico con la visión del producto **Churn Intelligence SaaS**, de manera que el modelo predictivo no constituya un componente aislado, sino una capacidad integrada dentro del proceso de análisis, identificación de riesgo y priorización de clientes.
