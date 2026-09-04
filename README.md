@@ -114,8 +114,8 @@ Preguntas complementarias para el EDA:
 **Métricas de evaluación:** Accuracy · Precision · Recall · F1-score · ROC-AUC
 
 ### Metodología (CRISP-DM)
-1. **Comprensión del negocio** — problema, objetivos, criterios de éxito ✅
-2. **Comprensión de los datos** — EDA, clasificación de variables, estadísticas descriptivas y visualizaciones ⏳ *(etapa actual)*
+1. **Comprensión del negocio** — problema, objetivos, criterios de éxito 
+2. **Comprensión de los datos** — EDA, clasificación de variables, estadísticas descriptivas y visualizaciones  *(etapa actual)*
 3. **Preparación de los datos** — tratamiento de nulos, duplicados, inconsistencias, outliers, transformación de la variable temporal, selección de características
 4. **Modelado** — modelos de clasificación (Regresión Logística, entre otros)
 5. **Evaluación** — validación y análisis de métricas
